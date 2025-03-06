@@ -22,7 +22,16 @@ class TranscribeController extends Controller
 
         Log::debug('path', ['path' => Storage::disk('public')->url($filename)]);
 
-        $data = $this->assemblyAI->transcribe(Storage::disk('public')->url($filename));
+        $data = rescue(
+            callback: function () use ($filename) {
+                return $this->assemblyAI->transcribe(
+                    Storage::disk('public')->url($filename)
+                );
+            },
+            rescue: function (\Exception $e) {
+                Log::error('Transcription failed', ['error' => $e->getMessage()]);
+            }
+        );
 
         return response()->json([
             'transcriptionId' => $data['id'],

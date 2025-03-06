@@ -50,22 +50,22 @@
             formData.append('file', audioBlob, 'audio.mp4');
 
             try {
-                const response = fetch('transcribe', {
+                let response = fetch('transcribe', {
                     method: 'POST',
                     body: formData,
                     headers,
-                });
-
-                if (response.ok) {
-                    let data = response.json();
+                }).then( (response) => {
+                    return response.json();
+                }).then( (data) => {
                     console.log(data, "Audio uploaded successfully");
                     transcriptionId = data.transcriptionId;
                     console.log(transcriptionId)
-                } else {
+                }).catch( (error) => {
                     console.error("Failed to upload audio");
-                }
+                });
+
             } catch (error) {
-                console.error("Error uploading audio:", error);
+                console.error("Failed to upload audio", error);
             }
         };
 
