@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::post('transcribe', TranscribeController::class)
         ->name('transcribe');
 
-    Route::get('transcribe', [TranscribeController::class, 'show'])
+    Route::get('transcribe/{id}', [TranscribeController::class, 'show'])
         ->name('transcription');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])

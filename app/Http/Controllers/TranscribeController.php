@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAudioRequest;
 use App\Services\AssemblyAI;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class TranscribeController extends Controller
@@ -15,22 +16,24 @@ class TranscribeController extends Controller
 
     public function __invoke(StoreAudioRequest $request)
     {
-        Storage::disk('public')->put('audio.mp4', $request->file('file')->get());
+        $filename = str()->random(15) . '.mp4';
 
-        $data = $this->assemblyAI->transcribe(Storage::disk('public')->url('audio.mp4'));
+        Storage::disk('public')->put($filename, $request->file('file')->get());
 
-        Cache::set('assemblyAI', ['id' => $data['id'], 'status' => 'queued']);
+        Log::debug('path', ['path' => Storage::disk('public')->url($filename)]);
+
+        $data = $this->assemblyAI->transcribe(Storage::disk('public')->url($filename));
 
         return response()->json([
-            'transcription_id' => $data['id'],
+            'transcriptionId' => $data['id'],
         ]);
     }
 
-    public function show()
+    public function show(string $transcriptionId)
     {
         return response()->json([
             'transcription' => $this->assemblyAI->poll(
-                Cache::get('assemblyAI')['id']
+                $transcriptionId
             )['text'],
         ]);
     }

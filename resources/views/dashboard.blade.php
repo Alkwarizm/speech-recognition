@@ -16,21 +16,21 @@
                         <button id="startRecord" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                             Start Recording
                         </button>
-                        <button id="stopRecord" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-2" disabled>
+                        <button id="stopRecord" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-2 hidden">
                             Stop Recording
                         </button>
                     </div>
 
                     <!-- Audio Playback -->
-                    <div class="mt-4">
+                    <div class="mt-4 hidden" id="audio-section">
                         <audio id="audioPlayback" controls class="w-full"></audio>
                     </div>
 
                     <!-- Status Message -->
-                    <p id="status" class="text-sm text-gray-600 mt-2">Loading</p>
+                    <p id="status" class="text-sm text-gray-600 mt-2"></p>
 
                     <!-- Transcription -->
-                    <div class="mt-4">
+                    <div class="mt-4 hidden" id="transcribe-section">
                         <h2 class="text-xl font-semibold mb-4">Transcription</h2>
                         <p id="transcription" class="text-sm text-gray-600">Loading</p>
                     </div>
@@ -57,7 +57,10 @@
                 });
 
                 if (response.ok) {
-                    console.log(response.json(), "Audio uploaded successfully");
+                    let data = response.json();
+                    console.log(data, "Audio uploaded successfully");
+                    transcriptionId = data.transcriptionId;
+                    console.log(transcriptionId)
                 } else {
                     console.error("Failed to upload audio");
                 }
@@ -66,8 +69,8 @@
             }
         };
 
-        const getTranscription = () => {
-            fetch('transcribe', {
+        const getTranscription = (transcriptionId) => {
+            fetch(`transcribe/${transcriptionId}`, {
                 method: 'GET',
                 headers,
             })
@@ -83,11 +86,14 @@
 
         let mediaRecorder;
         let audioChunks = [];
+        let transcriptionId = "";
 
         const startRecordButton = document.getElementById('startRecord');
         const stopRecordButton = document.getElementById('stopRecord');
         const audioPlayback = document.getElementById('audioPlayback');
         const statusText = document.getElementById('status');
+        const audioSection = document.getElementById('audio-section');
+        const transcribeSection = document.getElementById('transcribe-section');
 
         // Check for browser support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -98,6 +104,8 @@
         // Start Recording
         startRecordButton.addEventListener('click', async () => {
             try {
+                startRecordButton.classList.add('hidden');
+                stopRecordButton.classList.remove('hidden');
                 statusText.textContent = "Recording...";
                 startRecordButton.disabled = true;
                 stopRecordButton.disabled = false;
@@ -136,11 +144,15 @@
                 mediaRecorder.stop();
                 startRecordButton.disabled = false;
                 stopRecordButton.disabled = true;
+                startRecordButton.classList.remove('hidden');
+                stopRecordButton.classList.add('hidden');
+                audioSection.classList.remove('hidden');
+                transcribeSection.classList.remove('hidden');
             }
         });
 
         // Fetch transcription when the user clicks on the play button
-        audioPlayback.addEventListener('play', getTranscription);
+        audioPlayback.addEventListener('play', () => getTranscription(transcriptionId));
     </script>
 
 </x-app-layout>
