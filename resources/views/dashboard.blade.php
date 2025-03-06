@@ -60,6 +60,10 @@
                     console.log(data, "Audio uploaded successfully");
                     transcriptionId = data.transcriptionId;
                     console.log(transcriptionId)
+                    startRecordButton.classList.remove('hidden');
+                    stopRecordButton.classList.add('hidden');
+                    audioSection.classList.remove('hidden');
+                    transcribeSection.classList.remove('hidden');
                 }).catch( (error) => {
                     console.error("Failed to upload audio");
                 });
@@ -76,8 +80,14 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
-                    document.getElementById('transcription').textContent = data.transcription;
+                    content = data.transcription
+                    document.getElementById('transcription').textContent =content ? content : "Processing...";
+
+                    if (!content)
+                        setTimeout(
+                            () => getTranscription(transcriptionId),
+                            5000
+                        )
                 })
                 .catch(error => {
                     console.error("Error fetching transcription:", error);
@@ -144,10 +154,6 @@
                 mediaRecorder.stop();
                 startRecordButton.disabled = false;
                 stopRecordButton.disabled = true;
-                startRecordButton.classList.remove('hidden');
-                stopRecordButton.classList.add('hidden');
-                audioSection.classList.remove('hidden');
-                transcribeSection.classList.remove('hidden');
             }
         });
 
